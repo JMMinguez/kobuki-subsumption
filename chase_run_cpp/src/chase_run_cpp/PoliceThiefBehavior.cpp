@@ -40,7 +40,7 @@ using std::placeholders::_1;
 
 PoliceThiefBehavior::PoliceThiefBehavior()
 : CascadeLifecycleNode("police_thief_behavior"),
-  state_(THIEF),
+  state_(POLICE),
   tf_buffer_(),
   tf_listener_(tf_buffer_)
 {
@@ -58,7 +58,7 @@ PoliceThiefBehavior::on_activate(const rclcpp_lifecycle::State & previous_state)
 
   state_ts_ = now();
 
-  go_state(THIEF);
+  go_state(POLICE);
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
@@ -149,9 +149,11 @@ PoliceThiefBehavior::go_state(int new_state)
 bool
 PoliceThiefBehavior::check_distance()
 {
+  std::cerr << "DISTANCIA 2: \t" << distance2person_ << std::endl;
   if (distance2person_ > 0.1) {
     return distance2person_ < 1;
   }
+  return false;
 }
 
 bool
@@ -199,6 +201,7 @@ void
 PoliceThiefBehavior::distance_callback(const std_msgs::msg::Float32::SharedPtr msg)
 {
   distance2person_ = msg->data;
+  std::cerr << "DISTANCIA 1: \t" << distance2person_ << std::endl;
 }
 
 }  // namespace chase_run

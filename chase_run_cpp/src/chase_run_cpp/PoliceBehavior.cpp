@@ -21,12 +21,17 @@
 #include "geometry_msgs/msg/twist.hpp"
 
 #include "vision_msgs/msg/detection3_d_array.hpp"
+#include "yolov8_msgs/msg/detection_array.hpp"
 
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2/transform_datatypes.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+
+#include "vision_msgs/msg/detection2_d_array.hpp"
+#include "vision_msgs/msg/detection2_d.hpp"
+#include "vision_msgs/msg/object_hypothesis_with_pose.hpp"
 
 namespace chase_run
 {
@@ -40,8 +45,8 @@ PoliceBehavior::PoliceBehavior()
   tf_buffer_(),
   tf_listener_(tf_buffer_)
 {
-  detection_sub_ = create_subscription<vision_msgs::msg::Detection3DArray>(
-    "input_detection", rclcpp::SensorDataQoS().reliable(),
+  detection_sub_ = create_subscription<yolov8_msgs::msg::DetectionArray>(
+    "yolo/detections", rclcpp::SensorDataQoS().reliable(),
     std::bind(&PoliceBehavior::detection_callback, this, _1));
   tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 }
@@ -107,52 +112,32 @@ PoliceBehavior::check_person()
 }
 
 void
-PoliceBehavior::detection_callback(vision_msgs::msg::Detection3DArray::UniquePtr msg)
+PoliceBehavior::detection_callback(const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & msg)
 {
-  tf2::Transform camera2person;
-  camera2person.setOrigin(tf2::Vector3(0.0, 0.0, 0.0));
-  camera2person.setRotation(tf2::Quaternion(0, 0, 0, 1));
+  vision_msgs::msg::Detection2DArray detection_array_msg;
+  detection_array_msg.header = msg->header;
 
-  geometry_msgs::msg::TransformStamped odom2camera_msg;
-  tf2::Stamped<tf2::Transform> odom2camera;
-
-  float len = std::size(msg->detections);
   person_detection_ = false;
 
-  for (int i = 0; i < len; i++) {
+  for (const auto & detection : msg->detections) {
+    vision_msgs::msg::Detection2D detection_msg;
+    detection_msg.header = msg->header;
 
-    if (msg->detections[i].results[0].hypothesis.class_id == "person") {
+    detection_msg.bbox.center.position.x = detection.bbox.center.position.x;
+    detection_msg.bbox.center.position.y = detection.bbox.center.position.y;
+    detection_msg.bbox.size_x = detection.bbox.size.x;
+    detection_msg.bbox.size_y = detection.bbox.size.y;
 
-      RCLCPP_INFO(get_logger(), "detected_person");
+    vision_msgs::msg::ObjectHypothesisWithPose obj_msg;
+    obj_msg.hypothesis.class_id = detection.class_name;
+    obj_msg.hypothesis.score = detection.score;
+
+    detection_msg.results.push_back(obj_msg);
+    detection_array_msg.detections.push_back(detection_msg);
+
+    // Si el nombre de la clase es "persona", entonces se ha detectado una persona
+    if (obj_msg.hypothesis.class_id == "person") {
       person_detection_ = true;
-
-      float x = msg->detections[i].bbox.center.position.x,
-        y = msg->detections[i].bbox.center.position.y,
-        z = msg->detections[i].bbox.center.position.z;
-
-      camera2person.setOrigin(tf2::Vector3(x, y, z));
-
-      try {
-        odom2camera_msg = tf_buffer_.lookupTransform(
-          "odom", "camera_depth_optical_frame",
-          tf2::timeFromSec(rclcpp::Time(msg->header.stamp).seconds()));
-        tf2::fromMsg(odom2camera_msg, odom2camera);
-        RCLCPP_INFO(get_logger(), "Make transform");
-      } catch (tf2::TransformException & ex) {
-        RCLCPP_WARN(get_logger(), "Person transform not found: %s", ex.what());
-        return;
-      }
-
-      tf2::Transform odom2person = odom2camera * camera2person;
-
-      geometry_msgs::msg::TransformStamped odom2person_msg;
-      odom2person_msg.transform = tf2::toMsg(odom2person);
-
-      odom2person_msg.header.stamp = msg->header.stamp;
-      odom2person_msg.header.frame_id = "odom";
-      odom2person_msg.child_frame_id = "person";
-
-      tf_broadcaster_->sendTransform(odom2person_msg);
     }
   }
 }

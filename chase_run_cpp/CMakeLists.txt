@@ -15,6 +15,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(vision_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(yolov8_msgs REQUIRED)
 
 set(dependencies
   rclcpp
@@ -27,6 +28,7 @@ set(dependencies
   tf2_msgs
   vision_msgs
   std_msgs
+  yolov8_msgs
 )
 
 include_directories(include)

@@ -25,6 +25,12 @@
 #include "tf2_ros/buffer.h"
 
 #include "vision_msgs/msg/detection3_d_array.hpp"
+#include "yolov8_msgs/msg/detection_array.hpp"
+
+#include "vision_msgs/msg/detection2_d_array.hpp"
+#include "vision_msgs/msg/detection2_d.hpp"
+#include "vision_msgs/msg/object_hypothesis_with_pose.hpp"
+
 
 namespace chase_run
 {
@@ -38,7 +44,7 @@ public:
 
 private:
   void control_cycle();
-  void detection_callback(vision_msgs::msg::Detection3DArray::UniquePtr msg);
+  void detection_callback(const yolov8_msgs::msg::DetectionArray::ConstSharedPtr & msg);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State & previous_state);
@@ -58,7 +64,7 @@ private:
 
   rclcpp::TimerBase::SharedPtr timer_;
 
-  rclcpp::Subscription<vision_msgs::msg::Detection3DArray>::SharedPtr detection_sub_;
+  rclcpp::Subscription<yolov8_msgs::msg::DetectionArray>::SharedPtr detection_sub_;
   vision_msgs::msg::Detection3DArray::UniquePtr msg;
 
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
