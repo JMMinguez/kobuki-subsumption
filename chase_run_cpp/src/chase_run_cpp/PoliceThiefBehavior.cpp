@@ -30,6 +30,8 @@
 
 #include "kobuki_ros_interfaces/msg/led.hpp"
 
+#include "std_msgs/msg/float32.hpp"
+
 namespace chase_run
 {
 
@@ -44,6 +46,9 @@ PoliceThiefBehavior::PoliceThiefBehavior()
 {
   vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
   led_pub_ = create_publisher<kobuki_ros_interfaces::msg::Led>("output_led", 0);
+  distance_sub_ =  create_subscription<std_msgs::msg::Float32>(
+    "distance2person", 10,
+    std::bind(&PoliceThiefBehavior::distance_callback, this, _1));
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -142,7 +147,7 @@ PoliceThiefBehavior::go_state(int new_state)
 bool
 PoliceThiefBehavior::check_distance()
 {
- // Ver si la distancia entre robot y persona es de menos de 1 metro
+ return distance2person_ < 1;
 }
 
 bool
@@ -184,6 +189,12 @@ PoliceThiefBehavior::check_turn()
 
     return yaw_ < TURN_LIMIT;
   }
+}
+
+void
+PoliceThiefBehavior::distance_callback(const std_msgs::msg::Float32::SharedPtr msg)
+{
+  distance2person_ = msg->data;
 }
 
 }  // namespace chase_run

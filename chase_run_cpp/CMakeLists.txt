@@ -14,6 +14,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(vision_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 set(dependencies
   rclcpp
@@ -25,6 +26,7 @@ set(dependencies
   tf2
   tf2_msgs
   vision_msgs
+  std_msgs
 )
 
 include_directories(include)
@@ -37,6 +39,7 @@ add_library(${PROJECT_NAME} SHARED
   src/chase_run_cpp/PoliceBehavior.cpp
   src/chase_run_cpp/SearchBehavior.cpp
   src/chase_run_cpp/PursuitBehavior.cpp
+  src/chase_run_cpp/PIDController.cpp
 )
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 

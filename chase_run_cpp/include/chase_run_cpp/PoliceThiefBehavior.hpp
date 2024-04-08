@@ -28,6 +28,8 @@
 
 #include "kobuki_ros_interfaces/msg/led.hpp"
 
+#include "std_msgs/msg/float32.hpp"
+
 namespace chase_run
 {
 
@@ -82,6 +84,11 @@ private:
   static const int GREEN = 1;
   static const int BLUE = 2;
   static const int RED = 3;
+
+  void distance_callback(const std_msgs::msg::Float32::SharedPtr msg);
+
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr distance_sub_;
+  float distance2person_;
 };
 
 }  // namespace chase_run

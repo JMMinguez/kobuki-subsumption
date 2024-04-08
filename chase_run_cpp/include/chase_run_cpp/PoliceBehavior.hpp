@@ -64,6 +64,7 @@ private:
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   tf2::BufferCore tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
+
 };
 
 }  // namespace chase_run

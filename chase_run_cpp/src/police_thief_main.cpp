@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
 
   auto police_node = std::make_shared<chase_run::PoliceBehavior>();
   auto search_node = std::make_shared<chase_run::SearchBehavior>();
-  //auto pursuit_node = std::make_shared<chase_run::PursuitBehavior>();
+  auto pursuit_node = std::make_shared<chase_run::PursuitBehavior>();
 
   exe.add_node(policethief_node->get_node_base_interface());
 
@@ -50,7 +50,7 @@ int main(int argc, char * argv[])
 
   exe.add_node(police_node->get_node_base_interface());
   exe.add_node(search_node->get_node_base_interface());
-  //exe.add_node(pursuit_node->get_node_base_interface());
+  exe.add_node(pursuit_node->get_node_base_interface());
 
   policethief_node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
 
@@ -60,7 +60,7 @@ int main(int argc, char * argv[])
 
   police_node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
   search_node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
-  //pursuit_node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
+  pursuit_node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
 
   policethief_node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE);
 
