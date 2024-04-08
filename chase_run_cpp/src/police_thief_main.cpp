@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
 
-  rclcpp::executors::MultiThreadedExecutor exe(rclcpp::ExecutorOptions(), 3);
+  rclcpp::executors::MultiThreadedExecutor exe(rclcpp::ExecutorOptions(), 8);
 
   auto policethief_node = std::make_shared<chase_run::PoliceThiefBehavior>();
 

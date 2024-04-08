@@ -89,8 +89,9 @@ ThiefBehavior::control_cycle()
 void
 ThiefBehavior::go_state(int new_state)
 {
-  clear_activation();
-
+  //clear_activation();
+  remove_activation("forward_behavior");
+  remove_activation("avoid_behavior");
   state_ = new_state;
   state_ts_ = now();
 }

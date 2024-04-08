@@ -93,8 +93,9 @@ PoliceBehavior::control_cycle()
 void
 PoliceBehavior::go_state(int new_state)
 {
-  clear_activation();
-
+  //clear_activation();
+  remove_activation("search_behavior");
+  remove_activation("pursuit_behavior");
   state_ = new_state;
   state_ts_ = now();
 }

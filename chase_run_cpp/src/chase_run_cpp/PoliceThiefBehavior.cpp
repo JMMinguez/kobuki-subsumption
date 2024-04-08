@@ -40,7 +40,7 @@ using std::placeholders::_1;
 
 PoliceThiefBehavior::PoliceThiefBehavior()
 : CascadeLifecycleNode("police_thief_behavior"),
-  state_(POLICE),
+  state_(THIEF),
   tf_buffer_(),
   tf_listener_(tf_buffer_)
 {
@@ -58,7 +58,7 @@ PoliceThiefBehavior::on_activate(const rclcpp_lifecycle::State & previous_state)
 
   state_ts_ = now();
 
-  go_state(POLICE);
+  go_state(THIEF);
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
@@ -110,6 +110,7 @@ PoliceThiefBehavior::control_cycle()
       break;
 
     case TURN:
+      vel_pub_->on_activate();
       out_vel_.angular.z = 0.3;
 
       out_led.value = GREEN;
@@ -122,8 +123,10 @@ PoliceThiefBehavior::control_cycle()
         first_turn_check_ = true;
 
         if (prev_fsm_state_ == 0) {
+          remove_activation("police_behavior");
           go_state(THIEF);
         } else {
+          remove_activation("thief_behavior");
           go_state(POLICE);
         }
       }
@@ -137,7 +140,7 @@ PoliceThiefBehavior::control_cycle()
 void
 PoliceThiefBehavior::go_state(int new_state)
 {
-  clear_activation();
+  //clear_activation();
 
   state_ = new_state;
   state_ts_ = now();
@@ -146,7 +149,9 @@ PoliceThiefBehavior::go_state(int new_state)
 bool
 PoliceThiefBehavior::check_distance()
 {
-  return distance2person_ < 1;
+  if (distance2person_ > 0.1) {
+    return distance2person_ < 1;
+  }
 }
 
 bool
