@@ -13,11 +13,20 @@
 // limitations under the License.
 
 #include <utility>
+
+#include "rclcpp/rclcpp.hpp"
+
 #include "chase_run_cpp/PoliceBehavior.hpp"
 
 #include "geometry_msgs/msg/twist.hpp"
 
-#include "rclcpp/rclcpp.hpp"
+#include "vision_msgs/msg/detection3_d_array.hpp"
+
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2/transform_datatypes.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 namespace chase_run
 {
@@ -27,8 +36,14 @@ using std::placeholders::_1;
 
 PoliceBehavior::PoliceBehavior()
 : CascadeLifecycleNode("police_behavior"),
-  state_(SEARCH)
+  state_(SEARCH),
+  tf_buffer_(),
+  tf_listener_(tf_buffer_)
 {
+  detection_sub_ = create_subscription<vision_msgs::msg::Detection3DArray>(
+    "input_detection", rclcpp::SensorDataQoS().reliable(),
+    std::bind(&PoliceBehavior::detection_callback, this, _1));
+  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -89,7 +104,57 @@ PoliceBehavior::go_state(int new_state)
 bool
 PoliceBehavior::check_person()
 {
-  // Ver si hay persona
+  return person_detection_;
 }
 
+void
+PoliceBehavior::detection_callback(vision_msgs::msg::Detection3DArray::UniquePtr msg)
+{
+  tf2::Transform camera2person;
+  camera2person.setOrigin(tf2::Vector3(0.0, 0.0, 0.0));
+  camera2person.setRotation(tf2::Quaternion(0, 0, 0, 1));
+
+  geometry_msgs::msg::TransformStamped odom2camera_msg;
+  tf2::Stamped<tf2::Transform> odom2camera;
+
+  float len = std::size(msg->detections);
+  person_detection_ = false;
+
+  for (int i = 0; i < len; i++) {
+
+    if (msg->detections[i].results[0].hypothesis.class_id == "person") {
+      
+      RCLCPP_INFO(get_logger(), "detected_person");
+      person_detection_ = true;
+
+      float x = msg->detections[i].bbox.center.position.x,
+        y = msg->detections[i].bbox.center.position.y,
+        z = msg->detections[i].bbox.center.position.z;
+
+      camera2person.setOrigin(tf2::Vector3(x, y, z));
+
+      try {
+        odom2camera_msg = tf_buffer_.lookupTransform(
+          "odom",   "camera_depth_optical_frame",
+          tf2::timeFromSec(rclcpp::Time(msg->header.stamp).seconds()));
+        tf2::fromMsg(odom2camera_msg, odom2camera);
+        RCLCPP_INFO(get_logger(), "Make transform");
+      } catch (tf2::TransformException & ex) {
+        RCLCPP_WARN(get_logger(), "Person transform not found: %s", ex.what());
+        return;
+      }
+
+      tf2::Transform odom2person = odom2camera * camera2person;
+
+      geometry_msgs::msg::TransformStamped odom2person_msg;
+      odom2person_msg.transform = tf2::toMsg(odom2person);
+
+      odom2person_msg.header.stamp = msg->header.stamp;
+      odom2person_msg.header.frame_id = "odom";
+      odom2person_msg.child_frame_id = "person";
+
+      tf_broadcaster_->sendTransform(odom2person_msg);
+    }
+  }
+}
 }  // namespace chase_run

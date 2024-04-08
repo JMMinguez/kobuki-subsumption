@@ -20,6 +20,12 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_cascade_lifecycle/rclcpp_cascade_lifecycle.hpp"
 
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
+
+#include "vision_msgs/msg/detection3_d_array.hpp"
+
 namespace chase_run
 {
 
@@ -32,6 +38,7 @@ public:
 
 private:
   void control_cycle();
+  void detection_callback(vision_msgs::msg::Detection3DArray::UniquePtr msg);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State & previous_state);
@@ -40,14 +47,23 @@ private:
 
   static const int SEARCH = 0;
   static const int PURSUIT = 1;
-
+  
   int state_;
   rclcpp::Time state_ts_;
 
   void go_state(int new_state);
   bool check_person();
+  
+  bool person_detection_ {false};
 
   rclcpp::TimerBase::SharedPtr timer_;
+
+  rclcpp::Subscription<vision_msgs::msg::Detection3DArray>::SharedPtr detection_sub_;
+  vision_msgs::msg::Detection3DArray::UniquePtr msg;
+  
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  tf2::BufferCore tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
 };
 
 }  // namespace chase_run
