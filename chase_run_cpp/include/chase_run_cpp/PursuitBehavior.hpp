@@ -59,7 +59,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr distance_pub_;
   rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub_;
   geometry_msgs::msg::Twist vel;
-  
+
   rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr transform_sub_;
   tf2::BufferCore tf_buffer_;
   tf2_ros::TransformListener tf_listener_;

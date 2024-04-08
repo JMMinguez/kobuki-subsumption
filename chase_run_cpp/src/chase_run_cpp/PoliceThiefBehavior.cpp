@@ -46,7 +46,7 @@ PoliceThiefBehavior::PoliceThiefBehavior()
 {
   vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
   led_pub_ = create_publisher<kobuki_ros_interfaces::msg::Led>("output_led", 0);
-  distance_sub_ =  create_subscription<std_msgs::msg::Float32>(
+  distance_sub_ = create_subscription<std_msgs::msg::Float32>(
     "distance2person", 10,
     std::bind(&PoliceThiefBehavior::distance_callback, this, _1));
 }
@@ -57,7 +57,7 @@ PoliceThiefBehavior::on_activate(const rclcpp_lifecycle::State & previous_state)
   timer_ = create_wall_timer(50ms, std::bind(&PoliceThiefBehavior::control_cycle, this));
 
   state_ts_ = now();
-  
+
   go_state(POLICE);
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
@@ -108,7 +108,7 @@ PoliceThiefBehavior::control_cycle()
         go_state(TURN);
       }
       break;
-    
+
     case TURN:
       out_vel_.angular.z = 0.3;
 
@@ -123,8 +123,7 @@ PoliceThiefBehavior::control_cycle()
 
         if (prev_fsm_state_ == 0) {
           go_state(THIEF);
-        }
-        else {
+        } else {
           go_state(POLICE);
         }
       }
@@ -147,7 +146,7 @@ PoliceThiefBehavior::go_state(int new_state)
 bool
 PoliceThiefBehavior::check_distance()
 {
- return distance2person_ < 1;
+  return distance2person_ < 1;
 }
 
 bool
@@ -165,14 +164,14 @@ PoliceThiefBehavior::check_turn()
     if (tf_buffer_.canTransform("odom", "base_footprint", tf2::TimePointZero, &error)) {
       auto odom2bf_msg = tf_buffer_.lookupTransform(
         "odom", "base_footprint", tf2::TimePointZero);
-        tf2::fromMsg(odom2bf_msg, odom2bf_);
+      tf2::fromMsg(odom2bf_msg, odom2bf_);
       first_turn_check_ = false;
     }
   }
 
   tf2::Transform odom2bf_inverse = odom2bf_.inverse();
   tf2::Stamped<tf2::Transform> odom2bf1;
-  
+
   //  Gets the tf between 'odom' and actual 'base_footprint'
   if (tf_buffer_.canTransform("odom", "base_footprint", tf2::TimePointZero, &error)) {
     auto odom2bf1_msg = tf_buffer_.lookupTransform(
@@ -182,7 +181,7 @@ PoliceThiefBehavior::check_turn()
 
     // Gets the tf from start 'base_footprint' and actual 'base_footprint'
     tf2::Transform bf2bf1 = odom2bf_inverse * odom2bf1;
-    
+
     //  Calculate the angle between (0,0) and (x,y)
     tf2::Matrix3x3 mat(bf2bf1.getRotation());
     mat.getRPY(roll_, pitch_, yaw_);

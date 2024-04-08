@@ -80,7 +80,7 @@ PursuitBehavior::control_cycle()
   ang_pid_.set_pid(0.6, 0.08, 0.32);
 
   vel.angular.z = ang_pid_.get_output(angulo);
-  
+
   vel.linear.x = lin_pid_.get_output(distancia);
 
   vel_pub_->publish(vel);

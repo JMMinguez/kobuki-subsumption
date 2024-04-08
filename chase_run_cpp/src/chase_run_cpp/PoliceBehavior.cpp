@@ -73,9 +73,8 @@ PoliceBehavior::control_cycle()
     case SEARCH:
       RCLCPP_INFO(get_logger(), "Role: Police \t SEARCH");
       add_activation("search_behavior");
-      
-      if (check_person())
-      {
+
+      if (check_person()) {
         go_state(PURSUIT);
       }
       break;
@@ -84,8 +83,7 @@ PoliceBehavior::control_cycle()
       RCLCPP_INFO(get_logger(), "Role: Police \t PURSUIT");
       add_activation("pursuit_behavior");
 
-      if (!check_person())
-      {
+      if (!check_person()) {
         go_state(SEARCH);
       }
       break;
@@ -123,7 +121,7 @@ PoliceBehavior::detection_callback(vision_msgs::msg::Detection3DArray::UniquePtr
   for (int i = 0; i < len; i++) {
 
     if (msg->detections[i].results[0].hypothesis.class_id == "person") {
-      
+
       RCLCPP_INFO(get_logger(), "detected_person");
       person_detection_ = true;
 
@@ -135,7 +133,7 @@ PoliceBehavior::detection_callback(vision_msgs::msg::Detection3DArray::UniquePtr
 
       try {
         odom2camera_msg = tf_buffer_.lookupTransform(
-          "odom",   "camera_depth_optical_frame",
+          "odom", "camera_depth_optical_frame",
           tf2::timeFromSec(rclcpp::Time(msg->header.stamp).seconds()));
         tf2::fromMsg(odom2camera_msg, odom2camera);
         RCLCPP_INFO(get_logger(), "Make transform");

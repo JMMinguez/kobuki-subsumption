@@ -47,10 +47,10 @@ private:
   on_activate(const rclcpp_lifecycle::State & previous_state);
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State & previous_state);
-  
+
   int state_;
   rclcpp::Time state_ts_;
-  
+
   tf2::BufferCore tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   geometry_msgs::msg::TransformStamped transform_;
@@ -66,12 +66,11 @@ private:
   static const int TURN_LIMIT = M_PI;
   double roll_, pitch_, yaw_;
 
-
   void go_state(int new_state);
   bool check_distance();
   bool check_thief_time();
   bool check_turn();
-  
+
   rclcpp::TimerBase::SharedPtr timer_;
   const rclcpp::Duration THIEF_TIME {10s};
 
