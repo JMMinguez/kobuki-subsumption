@@ -45,6 +45,7 @@ private:
   rclcpp::Time state_ts_;
 
   void go_state(int new_state);
+  bool check_person();
 
   rclcpp::TimerBase::SharedPtr timer_;
 };

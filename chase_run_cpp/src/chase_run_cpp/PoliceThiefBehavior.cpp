@@ -28,6 +28,8 @@
 #include "tf2/transform_datatypes.h"
 #include "tf2_ros/transform_broadcaster.h"
 
+#include "kobuki_ros_interfaces/msg/led.hpp"
+
 namespace chase_run
 {
 
@@ -41,6 +43,7 @@ PoliceThiefBehavior::PoliceThiefBehavior()
   tf_listener_(tf_buffer_)
 {
   vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+  led_pub_ = create_publisher<kobuki_ros_interfaces::msg::Led>("output_led", 0);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -69,9 +72,16 @@ PoliceThiefBehavior::control_cycle()
   switch (state_) {
     case POLICE:
       RCLCPP_INFO(get_logger(), "Role: Police \t START");
+
+      out_led.value = BLUE;
+      led_pub_->publish(out_led);
+
       add_activation("police_behavior");
 
       if (check_distance()) {
+        out_led.value = OFF;
+        led_pub_->publish(out_led);
+
         prev_fsm_state_ = 0;
         go_state(TURN);
       }
@@ -79,9 +89,16 @@ PoliceThiefBehavior::control_cycle()
 
     case THIEF:
       RCLCPP_INFO(get_logger(), "Role: Thief \t START");
+
+      out_led.value = RED;
+      led_pub_->publish(out_led);
+
       add_activation("thief_behavior");
 
       if (check_thief_time()) {
+        out_led.value = OFF;
+        led_pub_->publish(out_led);
+
         prev_fsm_state_ = 1;
         go_state(TURN);
       }
@@ -90,7 +107,13 @@ PoliceThiefBehavior::control_cycle()
     case TURN:
       out_vel_.angular.z = 0.3;
 
+      out_led.value = GREEN;
+      led_pub_->publish(out_led);
+
       if (check_turn()) {
+        out_led.value = OFF;
+        led_pub_->publish(out_led);
+
         first_turn_check_ = true;
 
         if (prev_fsm_state_ == 0) {
@@ -119,7 +142,7 @@ PoliceThiefBehavior::go_state(int new_state)
 bool
 PoliceThiefBehavior::check_distance()
 {
- 
+ // Ver si la distancia entre robot y persona es de menos de 1 metro
 }
 
 bool

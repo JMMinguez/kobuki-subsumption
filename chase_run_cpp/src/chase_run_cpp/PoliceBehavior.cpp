@@ -58,11 +58,21 @@ PoliceBehavior::control_cycle()
     case SEARCH:
       RCLCPP_INFO(get_logger(), "Role: Police \t SEARCH");
       add_activation("search_behavior");
+      
+      if (check_person())
+      {
+        go_state(PURSUIT);
+      }
       break;
 
     case PURSUIT:
       RCLCPP_INFO(get_logger(), "Role: Police \t PURSUIT");
       add_activation("pursuit_behavior");
+
+      if (!check_person())
+      {
+        go_state(SEARCH);
+      }
       break;
   }
 }
@@ -74,6 +84,12 @@ PoliceBehavior::go_state(int new_state)
 
   state_ = new_state;
   state_ts_ = now();
+}
+
+bool
+PoliceBehavior::check_person()
+{
+  // Ver si hay persona
 }
 
 }  // namespace chase_run

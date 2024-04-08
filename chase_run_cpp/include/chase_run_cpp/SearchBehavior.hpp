@@ -11,3 +11,37 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#ifndef CHASE_RUN_CPP__SEARCHBEHAVIOR_HPP_
+#define CHASE_RUN_CPP__SEARCHBEHAVIOR_HPP_
+
+#include "geometry_msgs/msg/twist.hpp"
+
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_cascade_lifecycle/rclcpp_cascade_lifecycle.hpp"
+
+namespace chase_run
+{
+
+class SearchBehavior : public rclcpp_cascade_lifecycle::CascadeLifecycleNode
+{
+public:
+  SearchBehavior();
+
+private:
+  void control_cycle();
+
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_activate(const rclcpp_lifecycle::State & previous_state);
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_deactivate(const rclcpp_lifecycle::State & previous_state);
+
+  static constexpr float SPEED_ANGULAR = 0.3f;
+
+  rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub_;
+};
+
+}  // namespace chase_run
+
+#endif  // CHASE_RUN_CPP__SEARCHBEHAVIOR_HPP_

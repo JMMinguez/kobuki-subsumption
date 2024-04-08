@@ -26,6 +26,8 @@
 #include "tf2_ros/transform_listener.h"
 #include "tf2/transform_datatypes.h"
 
+#include "kobuki_ros_interfaces/msg/led.hpp"
+
 namespace chase_run
 {
 
@@ -73,6 +75,13 @@ private:
 
   rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub_;
   geometry_msgs::msg::Twist out_vel_;
+
+  rclcpp::Publisher<kobuki_ros_interfaces::msg::Led>::SharedPtr led_pub_;
+  kobuki_ros_interfaces::msg::Led out_led;
+  static const int OFF = 0;
+  static const int GREEN = 1;
+  static const int BLUE = 2;
+  static const int RED = 3;
 };
 
 }  // namespace chase_run
