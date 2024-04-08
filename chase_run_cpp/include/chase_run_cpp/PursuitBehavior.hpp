@@ -35,6 +35,10 @@
 
 #include "chase_run_cpp/PIDController.hpp"
 
+#include "vision_msgs/msg/detection2_d_array.hpp"
+#include "vision_msgs/msg/detection2_d.hpp"
+#include "vision_msgs/msg/object_hypothesis_with_pose.hpp"
+
 namespace chase_run
 {
 
@@ -48,6 +52,7 @@ public:
 private:
   void control_cycle();
   void transform_callback(const tf2_msgs::msg::TFMessage::ConstSharedPtr & msg);
+  void detection_2d_callback(vision_msgs::msg::Detection2DArray);
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State & previous_state);
@@ -63,11 +68,15 @@ private:
   rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr transform_sub_;
   tf2::BufferCore tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   PIDController lin_pid_, ang_pid_;
 
   double angulo;
   float distancia;
+
+  vision_msgs::msg::Detection2DArray::UniquePtr msg;
+  rclcpp::Subscription<vision_msgs::msg::Detection2DArray>::SharedPtr detection_2d_sub_;
 
 };
 

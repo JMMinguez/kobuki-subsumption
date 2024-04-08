@@ -33,6 +33,10 @@
 
 #include "geometry_msgs/msg/twist.hpp"
 
+#include "vision_msgs/msg/detection2_d_array.hpp"
+#include "vision_msgs/msg/detection2_d.hpp"
+#include "vision_msgs/msg/object_hypothesis_with_pose.hpp"
+
 namespace chase_run
 {
 
@@ -51,6 +55,10 @@ PursuitBehavior::PursuitBehavior()
   transform_sub_ = create_subscription<tf2_msgs::msg::TFMessage>(
     "tf_static", rclcpp::SensorDataQoS().reliable(),
     std::bind(&PursuitBehavior::transform_callback, this, _1));
+  detection_2d_sub_ = create_subscription<vision_msgs::msg::Detection2DArray>(
+    "detection_2d", rclcpp::SensorDataQoS().reliable(),
+    std::bind(&PursuitBehavior::detection_2d_callback, this, _1));
+  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -84,6 +92,38 @@ PursuitBehavior::control_cycle()
   vel.linear.x = lin_pid_.get_output(distancia);
 
   vel_pub_->publish(vel);
+}
+
+void
+PursuitBehavior::detection_2d_callback(vision_msgs::msg::Detection2DArray)
+{
+  tf2::Transform camera2person;
+  camera2person.setOrigin(tf2::Vector3(0.0, 0.0, 0.0));
+  camera2person.setRotation(tf2::Quaternion(0, 0, 0, 1));
+
+  geometry_msgs::msg::TransformStamped odom2camera_msg;
+  tf2::Stamped<tf2::Transform> odom2camera;
+
+  for (const auto & detection : msg->detections) {
+    float x = detection.bbox.center.position.x;
+    float y = detection.bbox.center.position.y;
+  }
+  
+  odom2camera_msg = tf_buffer_.lookupTransform(
+    "odom",   "camera_depth_optical_frame", //"camera_link",
+    tf2::timeFromSec(rclcpp::Time(msg->header.stamp).seconds())); //  -0.03
+  tf2::fromMsg(odom2camera_msg, odom2camera);
+
+  tf2::Transform odom2person = odom2camera * camera2person;
+
+  geometry_msgs::msg::TransformStamped odom2person_msg;
+  odom2person_msg.transform = tf2::toMsg(odom2person);
+
+  odom2person_msg.header.stamp = msg->header.stamp;
+  odom2person_msg.header.frame_id = "odom";
+  odom2person_msg.child_frame_id = "person";
+
+  tf_broadcaster_->sendTransform(odom2person_msg);
 }
 
 void

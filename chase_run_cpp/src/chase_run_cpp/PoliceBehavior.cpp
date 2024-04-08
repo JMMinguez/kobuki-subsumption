@@ -23,12 +23,6 @@
 #include "vision_msgs/msg/detection3_d_array.hpp"
 #include "yolov8_msgs/msg/detection_array.hpp"
 
-#include "tf2_ros/transform_broadcaster.h"
-#include "tf2/transform_datatypes.h"
-#include "tf2/LinearMath/Quaternion.h"
-#include "geometry_msgs/msg/transform_stamped.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-
 #include "vision_msgs/msg/detection2_d_array.hpp"
 #include "vision_msgs/msg/detection2_d.hpp"
 #include "vision_msgs/msg/object_hypothesis_with_pose.hpp"
@@ -41,14 +35,13 @@ using std::placeholders::_1;
 
 PoliceBehavior::PoliceBehavior()
 : CascadeLifecycleNode("police_behavior"),
-  state_(SEARCH),
-  tf_buffer_(),
-  tf_listener_(tf_buffer_)
+  state_(SEARCH)
 {
   detection_sub_ = create_subscription<yolov8_msgs::msg::DetectionArray>(
     "yolo/detections", rclcpp::SensorDataQoS().reliable(),
     std::bind(&PoliceBehavior::detection_callback, this, _1));
-  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
+  detection_pub_ = create_publisher<vision_msgs::msg::Detection2DArray>(
+    "detection_2d", rclcpp::SensorDataQoS().reliable());
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -138,6 +131,7 @@ PoliceBehavior::detection_callback(const yolov8_msgs::msg::DetectionArray::Const
     // Si el nombre de la clase es "persona", entonces se ha detectado una persona
     if (obj_msg.hypothesis.class_id == "person") {
       person_detection_ = true;
+      //detection_pub_->publish(detection_array_msg);
     }
   }
 }

@@ -20,10 +20,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_cascade_lifecycle/rclcpp_cascade_lifecycle.hpp"
 
-#include "tf2_ros/transform_broadcaster.h"
-#include "tf2_ros/transform_listener.h"
-#include "tf2_ros/buffer.h"
-
 #include "vision_msgs/msg/detection3_d_array.hpp"
 #include "yolov8_msgs/msg/detection_array.hpp"
 
@@ -65,11 +61,7 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
 
   rclcpp::Subscription<yolov8_msgs::msg::DetectionArray>::SharedPtr detection_sub_;
-  vision_msgs::msg::Detection3DArray::UniquePtr msg;
-
-  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-  tf2::BufferCore tf_buffer_;
-  tf2_ros::TransformListener tf_listener_;
+  rclcpp::Publisher<vision_msgs::msg::Detection2DArray>::SharedPtr detection_pub_;
 
 };
 
